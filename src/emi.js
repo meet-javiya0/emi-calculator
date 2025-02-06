@@ -8,11 +8,17 @@
  * @return {object}
  */
 function Loan (amount, installmentsNumber, interestRate) {
-  /** Checking params */
-  if (!amount ||
-     !installmentsNumber ||
-     !interestRate) {
-    throw new Error(`wrong parameters: ${amount} ${installmentsNumber} ${interestRate}`)
+  if (
+    !amount ||
+        amount <= 0 ||
+        !installmentsNumber ||
+        installmentsNumber <= 0 ||
+        !interestRate ||
+        interestRate <= 0
+  ) {
+    throw new Error(
+            `wrong parameters: ${amount} ${installmentsNumber} ${interestRate}`
+    )
   }
 
   const installments = []
@@ -22,7 +28,11 @@ function Loan (amount, installmentsNumber, interestRate) {
 
   for (let i = 0; i < installmentsNumber; i++) {
     const inst = getNextInstallment(
-      amount, installmentsNumber, interestRate, principalSum, interestSum
+      amount,
+      installmentsNumber,
+      interestRate,
+      principalSum,
+      interestSum
     )
 
     sum += inst.installment
@@ -58,12 +68,18 @@ function Loan (amount, installmentsNumber, interestRate) {
  * @returns {{ principal: number, interest: number, installment: number, remain: number, interestSum: number }}
  */
 const getNextInstallment = (
-  amount, installmentsNumber, interestRate, principalSum, interestSum
+  amount,
+  installmentsNumber,
+  interestRate,
+  principalSum,
+  interestSum
 ) => {
   const monthlyInterestRate = interestRate / (12 * 100)
 
   const irmPow = Math.pow(1 + monthlyInterestRate, installmentsNumber)
-  const installment = rnd(amount * ((monthlyInterestRate * irmPow) / (irmPow - 1)))
+  const installment = rnd(
+    amount * ((monthlyInterestRate * irmPow) / (irmPow - 1))
+  )
   const interest = rnd((amount - principalSum) * monthlyInterestRate)
   const principal = installment - interest
 
@@ -85,53 +101,72 @@ const getNextInstallment = (
  */
 function emiToHtmlTable (loan, params) {
   params = params || {}
-  params.formatMoney = params.formatMoney || function (num) {
-    return num.toFixed(2)
-  }
+  params.formatMoney =
+        params.formatMoney ||
+        function (num) {
+          return num.toFixed(2)
+        }
   const fm = params.formatMoney
   const html = [
     '<table class="table table-striped">' +
-      '<thead>' +
-        '<tr>' +
-          '<th>#</th>' +
-          '<th>Principal</th>' +
-          '<th>Interest</th>' +
-          '<th>Installment</th>' +
-          '<th>Remaining Principal</th>' +
-          '<th>Total Interest Paid</th>' +
-        '</tr>' +
-      '</thead>' +
-      '<tbody>',
+            '<thead>' +
+            '<tr>' +
+            '<th>#</th>' +
+            '<th>Principal</th>' +
+            '<th>Interest</th>' +
+            '<th>Installment</th>' +
+            '<th>Remaining Principal</th>' +
+            '<th>Total Interest Paid</th>' +
+            '</tr>' +
+            '</thead>' +
+            '<tbody>',
     '', // body content [1]
-    '</tbody>' +
-    '</table>'
+    '</tbody>' + '</table>'
   ]
 
   for (let i = 0; i < loan.installments.length; i++) {
     const inst = loan.installments[i]
     const instHtml =
-          '<tr>' +
-            '<td>' + (i + 1) + '</td>' +
-            '<td>' + fm(inst.principal) + '</td>' +
-            '<td>' + fm(inst.interest) + '</td>' +
-            '<td>' + fm(inst.installment) + '</td>' +
-            '<td>' + fm(inst.remain) + '</td>' +
-            '<td>' + fm(inst.interestSum) + '</td>' +
-          '</tr>'
+            '<tr>' +
+            '<td>' +
+            (i + 1) +
+            '</td>' +
+            '<td>' +
+            fm(inst.principal) +
+            '</td>' +
+            '<td>' +
+            fm(inst.interest) +
+            '</td>' +
+            '<td>' +
+            fm(inst.installment) +
+            '</td>' +
+            '<td>' +
+            fm(inst.remain) +
+            '</td>' +
+            '<td>' +
+            fm(inst.interestSum) +
+            '</td>' +
+            '</tr>'
     html[1] += instHtml
   }
 
   html[1] +=
-    '<tfoot>' +
-      '<tr>' +
+        '<tfoot>' +
+        '<tr>' +
         '<td>Total</td>' +
-        '<td>' + fm(loan.principalSum) + '</td>' +
-        '<td>' + fm(loan.interestSum) + '</td>' +
-        '<td>' + fm(loan.sum) + '</td>' +
+        '<td>' +
+        fm(loan.principalSum) +
+        '</td>' +
+        '<td>' +
+        fm(loan.interestSum) +
+        '</td>' +
+        '<td>' +
+        fm(loan.sum) +
+        '</td>' +
         '<td>-</td>' +
         '<td>-</td>' +
-      '</tr>' +
-    '</tfoot>'
+        '</tr>' +
+        '</tfoot>'
 
   return html.join('')
 }
